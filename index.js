@@ -1,7 +1,5 @@
 "use strict";
 
-// https://gitlab.com/api/v4/projects/<project_id>/repository/archive.zip?sha=<tag>
-
 // Require Node.js Dependencies
 const { promisify } = require("util");
 const { createWriteStream, createReadStream, promises: { unlink } } = require("fs");
@@ -23,7 +21,7 @@ const pipeline = promisify(stream.pipeline);
 /**
  * @async
  * @function download
- * @param {*} repositoryId repository
+ * @param {*} repository repository
  * @param {*} options options
  * @param {string} [options.branch=master] branch to download
  * @param {string} [options.dest] destination to transfert file
@@ -34,9 +32,9 @@ const pipeline = promisify(stream.pipeline);
  *
  * @throws {TypeError}
  */
-async function download(repositoryId, options = Object.create(null)) {
-    if (typeof repositoryId !== "string") {
-        throw new TypeError("repositoryId must be a string!");
+async function download(repository, options = Object.create(null)) {
+    if (typeof repository !== "string") {
+        throw new TypeError("repository must be a string!");
     }
     if (!is.plainObject(options)) {
         throw new TypeError("options must be a plain javascript object!");
@@ -45,9 +43,15 @@ async function download(repositoryId, options = Object.create(null)) {
     // Retrieve options
     const { branch = "master", dest = process.cwd(), extract = false, unlink: ulk = true, auth } = options;
 
+    // https://gitlab.com/api/v4/projects/polychromatic%2Fplombier-chauffagiste
+
     // Create URL!
+    const [org, repo] = repository.split(".");
+    // TODO: get id
+    const repositoryId = "";
+
     const gitUrl = new URL(`${repositoryId}/repository/archive.tar.gz?ref=${branch}`, GITLAB_URL);
-    const fileDestination = join(dest, `${repositoryId}-${branch}.tar.gz`);
+    const fileDestination = join(dest, `${repo}-${branch}.tar.gz`);
 
     await new Promise((resolve, reject) => {
         const headers = {
@@ -82,7 +86,7 @@ async function download(repositoryId, options = Object.create(null)) {
             await unlink(fileDestination);
         }
 
-        return join(dest, `${repositoryId}-${branch}`);
+        return join(dest, `${repo}-${branch}`);
     }
 
     return fileDestination;
