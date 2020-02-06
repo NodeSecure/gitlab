@@ -1,0 +1,64 @@
+{
+    "name": "@slimio/gitlab",
+    "version": "1.0.0",
+    "description": "Download and extract gitlab repository",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "prepublishOnly": "pkg-ok",
+        "doc": "jsdoc -c ./jsdoc.json -r -R ./README.md -P ./package.json --verbose",
+        "test": "cross-env psp && jest --coverage"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/SlimIO/gitlab.git"
+    },
+    "keywords": [
+        "SlimIO",
+        "gitlab"
+    ],
+    "files": [
+        "index.d.ts"
+    ],
+    "author": "SlimIO",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/SlimIO/gitlab/issues"
+    },
+    "homepage": "https://github.com/SlimIO/gitlab#readme",
+    "dependencies": {
+        "@slimio/is": "^1.5.1",
+        "follow-redirects": "^1.10.0",
+        "tar-fs": "^2.0.0"
+    },
+    "devDependencies": {
+        "@commitlint/cli": "^8.3.5",
+        "@commitlint/config-conventional": "^8.3.4",
+        "@escommunity/minami": "^1.0.0",
+        "@slimio/eslint-config": "^4.0.0",
+        "eslint": "^6.8.0",
+        "husky": "^4.2.1",
+        "jsdoc": "^3.6.3",
+        "pkg-ok": "^2.3.1",
+        "cross-env": "^7.0.0",
+        "@slimio/psp": "^0.11.0",
+        "jest": "^25.1.0"
+    },
+    "engines": {
+        "node": ">=12"
+    },
+    "husky": {
+        "hooks": {
+            "pre-push": "cross-env eslint index.js && npm test",
+            "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+        }
+    },
+    "nyc": {
+        "check-coverage": true,
+        "per-file": false,
+        "lines": 98,
+        "statements": 98,
+        "functions": 98,
+        "branches": 90
+    }
+}
