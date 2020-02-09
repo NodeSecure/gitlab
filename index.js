@@ -47,8 +47,23 @@ async function download(repository, options = Object.create(null)) {
 
     // Create URL!
     const [org, repo] = repository.split(".");
-    // TODO: get id
-    const repositoryId = "";
+
+    const repositoryId = await new Promise((resolve, reject) => {
+        https.get(`${GITLAB_URL.href}${org}%2F${repo}`, (response) => {
+            if (response.statusCode === 404) {
+                reject(Error(res.statusMessage));
+            }
+            let rawData = "";
+            response.on("data", (buffer) => {
+                rawData += buffer;
+            });
+            response.on("error", reject);
+            response.on("end", () => {
+                const jsonData = JSON.parse(rawData.toString());
+                resolve(jsonData.id);
+            });
+        });
+    });
 
     const gitUrl = new URL(`${repositoryId}/repository/archive.tar.gz?ref=${branch}`, GITLAB_URL);
     const fileDestination = join(dest, `${repo}-${branch}.tar.gz`);
