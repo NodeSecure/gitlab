@@ -41,32 +41,34 @@ async function download(repository, options = Object.create(null)) {
     }
 
     // Retrieve options
-    const { branch = "master", dest = process.cwd(), extract = false, unlink: ulk = true, auth } = options;
+    const { branch = null, dest = process.cwd(), extract = false, unlink: ulk = true, auth } = options;
 
-    // https://gitlab.com/api/v4/projects/polychromatic%2Fplombier-chauffagiste
-
-    // Create URL!
+    // Search for repositoryId with the manifest request
     const [org, repo] = repository.split(".");
+    const gitlabManifest = await new Promise((resolve, reject) => {
+        const headers = { "User-Agent": "SlimIO" };
+        const options = { headers, timeout: 5000 };
+        if (typeof auth === "string") {
+            headers.Authorization = `Bearer ${auth}`;
+        }
 
-    const repositoryId = await new Promise((resolve, reject) => {
-        https.get(`${GITLAB_URL.href}${org}%2F${repo}`, (response) => {
+        https.get(new URL(`${org}%2F${repo}`, GITLAB_URL).href, options, (response) => {
             if (response.statusCode === 404) {
                 reject(Error(res.statusMessage));
             }
-            let rawData = "";
-            response.on("data", (buffer) => {
-                rawData += buffer;
-            });
-            response.on("error", reject);
-            response.on("end", () => {
-                const jsonData = JSON.parse(rawData.toString());
-                resolve(jsonData.id);
-            });
-        });
-    });
+            else {
+                let rawData = "";
 
-    const gitUrl = new URL(`${repositoryId}/repository/archive.tar.gz?ref=${branch}`, GITLAB_URL);
-    const fileDestination = join(dest, `${repo}-${branch}.tar.gz`);
+                response.on("data", (buffer) => (rawData += buffer));
+                response.once("error", reject);
+                response.once("end", () => resolve(JSON.parse(rawData)));
+            }
+        }).once("error", reject);
+    });
+    const defaultBranch = typeof branch === "string" ? branch : gitlabManifest.default_branch;
+
+    // Download the archive with the repositoryId
+    const fileDestination = join(dest, `${repo}-${defaultBranch}.tar.gz`);
 
     await new Promise((resolve, reject) => {
         const headers = {
@@ -75,9 +77,10 @@ async function download(repository, options = Object.create(null)) {
         };
         const options = { headers, timeout: 5000 };
         if (typeof auth === "string") {
-            headers.Authorization = `token ${auth}`;
+            headers.Authorization = `Bearer ${auth}`;
         }
 
+        const gitUrl = new URL(`${gitlabManifest.id}/repository/archive.tar.gz?ref=${defaultBranch}`, GITLAB_URL);
         https.get(gitUrl.href, options, (res) => {
             if (res.statusCode === 404) {
                 reject(Error(res.statusMessage));
@@ -87,10 +90,10 @@ async function download(repository, options = Object.create(null)) {
                 res.once("error", reject);
                 res.once("end", resolve);
             }
-        });
+        }).once("error", reject);
     });
 
-    // // Extract .tar.gz archive
+    // Extract .tar.gz archive
     if (extract) {
         await pipeline(
             createReadStream(fileDestination),
@@ -101,7 +104,7 @@ async function download(repository, options = Object.create(null)) {
             await unlink(fileDestination);
         }
 
-        return join(dest, `${repo}-${branch}`);
+        return join(dest, `${repo}-${defaultBranch}`);
     }
 
     return fileDestination;
