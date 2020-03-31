@@ -44,6 +44,23 @@
         "jsdoc": "^3.6.3",
         "pkg-ok": "^2.3.1"
     },
+    "jest": {
+        "setupFilesAfterEnv": [
+          "./jest.setup.js"
+        ],
+        "collectCoverageFrom": [
+          "index.js",
+          "**/src/**/*.js"
+        ],
+        "testEnvironment": "node",
+        "testMatch": [
+          "**/test/**/*.js"
+        ],
+        "testPathIgnorePatterns": [
+          "/node_modules/",
+          "/test/fixtures/"
+        ]
+      },
     "engines": {
         "node": ">=12"
     },
