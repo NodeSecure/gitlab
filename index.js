@@ -2,7 +2,7 @@
 
 // Require Node.js Dependencies
 const { promisify } = require("util");
-const { createWriteStream, createReadStream, promises: { unlink } } = require("fs");
+const { createWriteStream, createReadStream, promises: { unlink, mkdir } } = require("fs");
 const { join } = require("path");
 const { createGunzip } = require("zlib");
 const stream = require("stream");
@@ -43,6 +43,9 @@ async function download(repository, options = Object.create(null)) {
     // Retrieve options
     const { branch = null, dest = process.cwd(), extract = false, unlink: ulk = true, auth } = options;
 
+    // Create destinary directory.
+    await mkdir(dest, { recursive: true });
+
     // Search for repositoryId with the manifest request
     const [org, repo] = repository.split(".");
     const gitlabManifest = await new Promise((resolve, reject) => {
@@ -53,6 +56,7 @@ async function download(repository, options = Object.create(null)) {
         }
 
         https.get(new URL(`${org}%2F${repo}`, GITLAB_URL).href, options, (response) => {
+            /* istanbul ignore next */
             if (response.statusCode === 404) {
                 reject(Error(res.statusMessage));
             }
@@ -65,6 +69,8 @@ async function download(repository, options = Object.create(null)) {
             }
         }).once("error", reject);
     });
+
+    /* istanbul ignore next */
     const defaultBranch = typeof branch === "string" ? branch : gitlabManifest.default_branch;
 
     // Download the archive with the repositoryId
@@ -82,6 +88,7 @@ async function download(repository, options = Object.create(null)) {
 
         const gitUrl = new URL(`${gitlabManifest.id}/repository/archive.tar.gz?ref=${defaultBranch}`, GITLAB_URL);
         https.get(gitUrl.href, options, (res) => {
+            /* istanbul ignore next */
             if (res.statusCode === 404) {
                 reject(Error(res.statusMessage));
             }
@@ -95,16 +102,17 @@ async function download(repository, options = Object.create(null)) {
 
     // Extract .tar.gz archive
     if (extract) {
+        const dirName = join(dest, `${repo}-${defaultBranch}`);
         await pipeline(
             createReadStream(fileDestination),
             createGunzip(),
-            tar.extract(dest)
+            tar.extract(dirName)
         );
         if (ulk) {
             await unlink(fileDestination);
         }
 
-        return join(dest, `${repo}-${defaultBranch}`);
+        return dirName;
     }
 
     return fileDestination;
