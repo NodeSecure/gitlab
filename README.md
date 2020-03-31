@@ -5,6 +5,7 @@
 ![dep](https://img.shields.io/david/SlimIO/gitlab)
 ![size](https://img.shields.io/github/repo-size/SlimIO/gitlab)
 ![known vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/SlimIO/gitlab)
+[![Build Status](https://travis-ci.com/SlimIO/gitlab.svg?branch=master)](https://travis-ci.com/SlimIO/gitlab)
 
 Download and (optionaly) extract gitlab repository archive.
 
