@@ -3,7 +3,8 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/SlimIO/gitlab/commit-activity)
 ![MIT](https://img.shields.io/github/license/mashape/apistatus.svg)
 ![dep](https://img.shields.io/david/SlimIO/gitlab)
-![size](https://img.shields.io/bundlephobia/min/@slimio/gitlab.svg?style=flat)
+![size](https://img.shields.io/github/repo-size/SlimIO/gitlab)
+![known vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/SlimIO/gitlab)
 
 Download and (optionaly) extract gitlab repository archive.
 
