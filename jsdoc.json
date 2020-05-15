@@ -7,7 +7,8 @@
     },
     "source": {
         "include": [
-            "index.js"
+            "index.js",
+            "jest.setup.js"
         ],
         "exclude": [
             "node_modules",
