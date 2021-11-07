@@ -26,6 +26,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "AlexandreMalaj",
+      "name": "Alexandre Malaj",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32218832?v=4",
+      "profile": "https://github.com/AlexandreMalaj",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
