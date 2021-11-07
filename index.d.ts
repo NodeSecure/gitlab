@@ -6,7 +6,8 @@ export interface DownloadOptions {
    */
   dest?: string;
   /**
-   * The default gitlab branch name (master, main ...). By default it fetch the "default" gitlab branch.
+   * The default gitlab branch name (master, main ...).
+   * By default it fetch the "default" gitlab branch.
    *
    * @default null
    */
