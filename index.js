@@ -1,121 +1,80 @@
-"use strict";
+// Import Node.js Dependencies
+import path from "path";
+import { createWriteStream, createReadStream, promises as fs } from "fs";
+import { createGunzip } from "zlib";
+import { pipeline } from "stream/promises";
 
-// Require Node.js Dependencies
-const { promisify } = require("util");
-const { createWriteStream, createReadStream, promises: { unlink, mkdir } } = require("fs");
-const { join } = require("path");
-const { createGunzip } = require("zlib");
-const stream = require("stream");
+// Import Third-party Dependencies
+import tar from "tar-fs";
+import httpie from "@myunisoft/httpie";
 
-// Require Third-party Dependencies
-const tar = require("tar-fs");
-const is = require("@slimio/is");
-const { https } = require("follow-redirects");
+// Import Internal Dependencies
+import * as utils from "./src/utils.js";
 
 // CONSTANTS
-const GITLAB_URL = new URL("https://gitlab.com/api/v4/projects/");
+const kGitlabURL = new URL("https://gitlab.com/api/v4/projects/");
 
-// ASYNC
-const pipeline = promisify(stream.pipeline);
+// VARS
+let GITLAB_TOKEN = process.env.GITLAB_TOKEN ?? void 0;
+let GITLAB_URL = process.env.GITLAB_URL ?? void 0;
 
-/**
- * @async
- * @function download
- * @param {*} repository repository
- * @param {*} options options
- * @param {string} [options.branch=master] branch to download
- * @param {string} [options.dest] destination to transfert file
- * @param {boolean} [options.extract] Enable .zip extraction!
- * @param {boolean} [options.unlink] Unlink tar.gz file on extraction
- * @param {string} [options.auth] auth for private repository
- * @returns {Promise<string>}
- *
- * @throws {TypeError}
- */
-async function download(repository, options = Object.create(null)) {
-    if (typeof repository !== "string") {
-        throw new TypeError("repository must be a string!");
-    }
-    if (!is.plainObject(options)) {
-        throw new TypeError("options must be a plain javascript object!");
-    }
+export async function download(repository, options = Object.create(null)) {
+  if (typeof repository !== "string") {
+    throw new TypeError("repository must be a string!");
+  }
+  const { branch = null, dest = process.cwd(), token = GITLAB_TOKEN } = options;
+  const headers = {
+    authorization: typeof token === "string" ? `Bearer ${token}` : void 0,
+    "user-agent": "NodeSecure"
+  };
 
-    // Retrieve options
-    const { branch = null, dest = process.cwd(), extract = false, unlink: ulk = true, auth } = options;
+  const { data: gitlabManifest } = await httpie.get(new URL(utils.getRepositoryPath(repository), GITLAB_URL ?? kGitlabURL), {
+    headers, maxRedirections: 1
+  });
 
-    // Create destinary directory.
-    await mkdir(dest, { recursive: true });
+  const wantedBranch = typeof branch === "string" ? branch : gitlabManifest.default_branch;
+  const location = path.join(dest, `${gitlabManifest.name}-${wantedBranch}.tar.gz`);
 
-    // Search for repositoryId with the manifest request
-    const [org, repo] = repository.split(".");
-    const gitlabManifest = await new Promise((resolve, reject) => {
-        const headers = { "User-Agent": "SlimIO" };
-        const options = { headers, timeout: 5000 };
-        if (typeof auth === "string") {
-            headers.Authorization = `Bearer ${auth}`;
-        }
+  // Download the archive with the repositoryId
+  const repositoryURL = new URL(`${gitlabManifest.id}/repository/archive.tar.gz?ref=${wantedBranch}`, GITLAB_URL ?? kGitlabURL);
+  await httpie.stream("GET", repositoryURL, {
+    headers: { ...headers, "Accept-Encoding": "gzip, deflate" },
+    maxRedirections: 1
+  })(createWriteStream(location));
 
-        https.get(new URL(`${org}%2F${repo}`, GITLAB_URL).href, options, (response) => {
-            /* istanbul ignore next */
-            if (response.statusCode === 404) {
-                reject(Error(res.statusMessage));
-            }
-            else {
-                let rawData = "";
-
-                response.on("data", (buffer) => (rawData += buffer));
-                response.once("error", reject);
-                response.once("end", () => resolve(JSON.parse(rawData)));
-            }
-        }).once("error", reject);
-    });
-
-    /* istanbul ignore next */
-    const defaultBranch = typeof branch === "string" ? branch : gitlabManifest.default_branch;
-
-    // Download the archive with the repositoryId
-    const fileDestination = join(dest, `${repo}-${defaultBranch}.tar.gz`);
-
-    await new Promise((resolve, reject) => {
-        const headers = {
-            "User-Agent": "SlimIO",
-            "Accept-Encoding": "gzip, deflate"
-        };
-        const options = { headers, timeout: 5000 };
-        if (typeof auth === "string") {
-            headers.Authorization = `Bearer ${auth}`;
-        }
-
-        const gitUrl = new URL(`${gitlabManifest.id}/repository/archive.tar.gz?ref=${defaultBranch}`, GITLAB_URL);
-        https.get(gitUrl.href, options, (res) => {
-            /* istanbul ignore next */
-            if (res.statusCode === 404) {
-                reject(Error(res.statusMessage));
-            }
-            else {
-                res.pipe(createWriteStream(fileDestination));
-                res.once("error", reject);
-                res.once("end", resolve);
-            }
-        }).once("error", reject);
-    });
-
-    // Extract .tar.gz archive
-    if (extract) {
-        const dirName = join(dest, `${repo}-${defaultBranch}`);
-        await pipeline(
-            createReadStream(fileDestination),
-            createGunzip(),
-            tar.extract(dirName)
-        );
-        if (ulk) {
-            await unlink(fileDestination);
-        }
-
-        return dirName;
-    }
-
-    return fileDestination;
+  return {
+    location,
+    branch: wantedBranch,
+    organization: gitlabManifest.path_with_namespace.split("/")[0],
+    repository: gitlabManifest.name
+  };
 }
 
-module.exports = download;
+export async function downloadAndExtract(repository, options = Object.create(null)) {
+  const { removeArchive = true, ...downloadOptions } = options;
+  const { branch, dest = process.cwd(), token } = downloadOptions;
+
+  const result = await download(repository, { branch, dest, token });
+
+  const newLocation = path.join(dest, `${result.repository}-${result.branch}`);
+  await pipeline(
+    createReadStream(result.location),
+    createGunzip(),
+    tar.extract(newLocation)
+  );
+  if (removeArchive) {
+    await fs.unlink(result.location);
+  }
+
+  result.location = newLocation;
+
+  return result;
+}
+
+export function setToken(gitlabToken) {
+  GITLAB_TOKEN = gitlabToken;
+}
+
+export function setUrl(gitlabUrl) {
+  GITLAB_URL = gitlabUrl;
+}
