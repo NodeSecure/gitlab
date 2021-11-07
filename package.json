@@ -1,5 +1,5 @@
 {
-  "name": "@slimio/gitlab",
+  "name": "@nodesecure/gitlab",
   "version": "1.0.0",
   "description": "Download and extract gitlab repository",
   "exports": "./index.js",

@@ -25,7 +25,8 @@ $ yarn add @nodesecure/gitlab
 ```js
 import * as gitlab from "@nodesecure/gitlab";
 
-const is = await download("SlimIO.is");
+// Note: repository can be either namespace path or repository ID
+const is = await gitlab.download("NodeSecure.utils");
 console.log(is.location);
 ```
 
