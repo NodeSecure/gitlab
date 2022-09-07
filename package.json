@@ -1,6 +1,6 @@
 {
   "name": "@nodesecure/gitlab",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Download and extract gitlab repository",
   "exports": "./index.js",
   "type": "module",
