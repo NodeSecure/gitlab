@@ -13,7 +13,7 @@ Download and (optionaly) extract gitlab repository archive.
 
 ## Requirements
 
-- [Node.js](https://nodejs.org/en/) v16 or higher
+- [Node.js](https://nodejs.org/en/) v18 or higher
 
 ## Getting Started
 
@@ -80,14 +80,8 @@ export interface DownloadResult {
   branch: string;
 }
 
-export function download(
-  repo: string,
-  options?: DownloadOptions
-): Promise<DownloadResult>;
-export function downloadAndExtract(
-  repo: string,
-  options?: ExtractOptions
-): Promise<DownloadResult>;
+export function download(repo: string, options?: DownloadOptions): Promise<DownloadResult>;
+export function downloadAndExtract(repo: string, options?: ExtractOptions): Promise<DownloadResult>;
 export function setToken(gitlabToken: string): void;
 export function setUrl(gitlabUrl: string | URL): void;
 ```
@@ -115,7 +109,9 @@ gitlab.setUrl("...");
 ## Contributors ✨
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
