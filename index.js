@@ -37,10 +37,11 @@ export async function download(repository, options = Object.create(null)) {
 
   // Download the archive with the repositoryId
   const repositoryURL = new URL(`${gitlabManifest.id}/repository/archive.tar.gz?ref=${wantedBranch}`, GITLAB_URL ?? kGitlabURL);
-  await httpie.stream("GET", repositoryURL, {
+  const writableCallback = httpie.stream("GET", repositoryURL, {
     headers: { ...headers, "Accept-Encoding": "gzip, deflate" },
     maxRedirections: 1
-  })(createWriteStream(location));
+  });
+  await writableCallback(() => createWriteStream(location));
 
   return {
     location,
