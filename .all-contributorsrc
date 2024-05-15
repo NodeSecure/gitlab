@@ -45,6 +45,15 @@
       "contributions": [
         "maintenance"
       ]
+    },
+    {
+      "login": "FredGuiou",
+      "name": "FredGuiou",
+      "avatar_url": "https://avatars.githubusercontent.com/u/99122562?v=4",
+      "profile": "https://github.com/FredGuiou",
+      "contributions": [
+        "maintenance"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -53,5 +62,6 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": true,
-  "commitConvention": "angular"
+  "commitConvention": "angular",
+  "commitType": "docs"
 }
