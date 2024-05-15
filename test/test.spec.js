@@ -1,7 +1,7 @@
 // Import Node.js Dependencies
-import { fileURLToPath } from "url";
-import path from "path";
-import fs from "fs/promises";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+import fs from "node:fs/promises";
 import { test } from "node:test";
 import assert from "node:assert";
 

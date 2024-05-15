@@ -1,8 +1,8 @@
 // Import Node.js Dependencies
-import path from "path";
-import { createWriteStream, createReadStream, promises as fs } from "fs";
-import { createGunzip } from "zlib";
-import { pipeline } from "stream/promises";
+import path from "node:path";
+import { createWriteStream, createReadStream, promises as fs } from "node:fs";
+import { createGunzip } from "node:zlib";
+import { pipeline } from "node:stream/promises";
 
 // Import Third-party Dependencies
 import tar from "tar-fs";
@@ -37,10 +37,11 @@ export async function download(repository, options = Object.create(null)) {
 
   // Download the archive with the repositoryId
   const repositoryURL = new URL(`${gitlabManifest.id}/repository/archive.tar.gz?ref=${wantedBranch}`, GITLAB_URL ?? kGitlabURL);
-  await httpie.stream("GET", repositoryURL, {
+  const writableCallback = httpie.stream("GET", repositoryURL, {
     headers: { ...headers, "Accept-Encoding": "gzip, deflate" },
     maxRedirections: 1
-  })(createWriteStream(location));
+  });
+  await writableCallback(() => createWriteStream(location));
 
   return {
     location,
