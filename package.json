@@ -29,7 +29,7 @@
   },
   "homepage": "https://github.com/NodeSecure/gitlab#readme",
   "dependencies": {
-    "@myunisoft/httpie": "^4.0.1",
+    "@myunisoft/httpie": "^5.0.0",
     "tar-fs": "^3.0.6"
   },
   "devDependencies": {
