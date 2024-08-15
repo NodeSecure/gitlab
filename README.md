@@ -5,8 +5,6 @@
 [![OpenSSF
 Scorecard](https://api.securityscorecards.dev/projects/github.com/NodeSecure/gitlab/badge?style=for-the-badge)](https://api.securityscorecards.dev/projects/github.com/NodeSecure/gitlab)
 ![MIT](https://img.shields.io/github/license/NodeSecure/gitlab.svg?style=for-the-badge)
-![size](https://img.shields.io/github/repo-size/NodeSecure/gitlab?style=for-the-badge)
-![known vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/NodeSecure/gitlab?style=for-the-badge)
 ![build](https://img.shields.io/github/actions/workflow/status/NodeSecure/gitlab/node.js.yml?style=for-the-badge)
 
 Download and (optionaly) extract gitlab repository archive.
@@ -58,16 +56,11 @@ export interface DownloadOptions {
    * @default process.env.GITLAB_TOKEN
    */
   token?: string;
-}
-
-export type ExtractOptions = DownloadOptions & {
   /**
-   * Remove the tar.gz archive after a succesfull extraction
-   *
-   * @default true
+   * @default https://gitlab.com/api/v4/projects/
    */
-  removeArchive?: boolean;
-};
+  gitlab?: string;
+}
 
 export interface DownloadResult {
   /** Archive or repository location on disk */
@@ -80,20 +73,24 @@ export interface DownloadResult {
   branch: string;
 }
 
-export function download(repo: string, options?: DownloadOptions): Promise<DownloadResult>;
-export function downloadAndExtract(repo: string, options?: ExtractOptions): Promise<DownloadResult>;
-export function setToken(gitlabToken: string): void;
-export function setUrl(gitlabUrl: string | URL): void;
-```
+export function download(
+  repo: string,
+  options?: DownloadOptions
+): Promise<DownloadResult>;
 
-### Private repositories
+export interface DownloadExtractOptions extends DownloadOptions {
+  /**
+   * Remove the tar.gz archive after a succesfull extraction
+   *
+   * @default true
+   */
+  removeArchive?: boolean;
+}
 
-To work with private repositories you can either setup a `GITLAB_TOKEN` system variable or use `setToken` method:
-
-```js
-import * as gitlab from "@nodesecure/gitlab";
-
-gitlab.setToken("...");
+export function downloadAndExtract(
+  repo: string,
+  options?: DownloadExtractOptions
+): Promise<DownloadResult>;
 ```
 
 ### Custom gitlab URL
