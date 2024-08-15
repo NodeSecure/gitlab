@@ -29,14 +29,18 @@ $ yarn add @nodesecure/gitlab
 import * as gitlab from "@nodesecure/gitlab";
 
 // Note: repository can be either namespace path or repository ID
-const is = await gitlab.download("NodeSecure.utils");
-console.log(is.location);
+const result = await gitlab.download(
+  "NodeSecure.utils"
+);
+console.log(result);
 ```
 
 ## API
 
+Both `download` and `downloadAndExtract` functions use the same set of options.
+
 ```ts
-export interface DownloadOptions {
+interface DownloadOptions {
   /**
    * The destination (location) to extract the tar.gz
    *
@@ -61,8 +65,13 @@ export interface DownloadOptions {
    */
   gitlab?: string;
 }
+```
 
-export interface DownloadResult {
+### download(repository: string, options?: DownloadOptions): Promise< DownloadResult >
+Download the tar.gz archive of the GIT repository.
+
+```ts
+interface DownloadResult {
   /** Archive or repository location on disk */
   location: string;
   /** Gitlab repository name */
@@ -72,13 +81,13 @@ export interface DownloadResult {
   /** Gitlab branch name */
   branch: string;
 }
+```
 
-export function download(
-  repo: string,
-  options?: DownloadOptions
-): Promise<DownloadResult>;
+### downloadAndExtract(repository: string, options?: DownloadExtractOptions): Promise< DownloadResult >
+Use download but extract the tar.gz archive.
 
-export interface DownloadExtractOptions extends DownloadOptions {
+```ts
+interface DownloadExtractOptions extends DownloadOptions {
   /**
    * Remove the tar.gz archive after a succesfull extraction
    *
@@ -86,21 +95,6 @@ export interface DownloadExtractOptions extends DownloadOptions {
    */
   removeArchive?: boolean;
 }
-
-export function downloadAndExtract(
-  repo: string,
-  options?: DownloadExtractOptions
-): Promise<DownloadResult>;
-```
-
-### Custom gitlab URL
-
-To work with a custom gitlab instance you can either setup a `GITLAB_URL` system variable or use `setUrl` method:
-
-```js
-import * as gitlab from "@nodesecure/gitlab";
-
-gitlab.setUrl("...");
 ```
 
 ## Contributors ✨
